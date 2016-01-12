@@ -1,10 +1,39 @@
+# Written by Sagar Uprety
+#
+# Written in Python 2.7
+# Requires python libraries like numpy, matplotlib,etc.
+#
+# Applies metropolis algorithm to an encoded text, which is essentially a substitution cipher. 
+# This work is based on a paper by Persi Diaconis, the world renowned statistician.
+# Here is a link to the paper: http://math.uchicago.edu/~shmuel/Network-course-readings/MCMCRev.pdf
+#
+# NOTE : If you don't get the correct result during the first run of the code, kindly run it a second time,
+# as the code performs a random walk, so the accuracy is slightly uncertain.
+# However, the second time running of the code should provide 99% accuracy.
+
+
 import numpy
 import random
 import matplotlib.pyplot as plt
 from copy import deepcopy
 import math
 
+# This code generates the transition matrix according to the Project Gutenberg's The Complete Works of Jane Austen.
+# The text is taken from www.gutenberg.org.
+# The text is processed by converting all alphabets to lower case and replacing all non-alpha characters 
+# other than space, with a space.
+#
+# Then a first order transition matrix of order 27X27 is constructed where the (i,j)th element contains the number of times 
+# in this given text the character (either an alphabet or a space in this case) denoted by the jth column appears after the i
+# character represented by the ith row.
+# Since this text forms a very large corpus, we can assume that this matrix
+# gives us the first order transitions for the English Language. 
+#
+# However instead of storing the frequency of occurence each character, we store the log of probabilities
+
 def generateTransitionMatrix(filename):
+
+	print '\n....Generating the transition matrix....\n';
 	f = open(filename, 'r'); 
 	text = f.read();
 
@@ -19,7 +48,6 @@ def generateTransitionMatrix(filename):
 	formattedText = formattedText.lower();
 
 	M = numpy.zeros((28,28), dtype = numpy.float);
-	#N = numpy.zeros((28,28), dtype = numpy.int);
 
 	for i in range (0, len(formattedText) - 1 ):
 		if(formattedText[i] == ' '):
@@ -41,8 +69,6 @@ def generateTransitionMatrix(filename):
 			M[i][k]/=count;
 		count = 0;
 
-	#numpy.savetxt('transitionMatrix_probabilites.txt', M, fmt='%.4f');
-
 	for i in range (1, 28):
 		for j in range (1,28):
 			if(M[i][j] == 0):
@@ -53,18 +79,17 @@ def generateTransitionMatrix(filename):
 	numpy.savetxt('transitionMatrix_log_of_prob.txt', M, fmt='%.4f');	
 
 
+# This function determines whether the character is a letter or not.
 def isLetter(ch):
 	if ((ch >= 'A' and  ch <= 'Z') or (ch >= 'a' and  ch<='z') or ch == ' '):
 		return True;
 	else:
 		return False;
-
+# This function applies the metropolis algoritm to decipher the encoded text.
 def decipherText(M, encText):
 	f = numpy.zeros(28, dtype = numpy.int);
 	for i in range(1,28):
-		f[i] = i;
-	#while ():
-		
+		f[i] = i;		
 	r=1;
 	steps = 2500;
 	p_list = [];
@@ -86,27 +111,17 @@ def decipherText(M, encText):
 			if(rnd <= math.exp(p2-p1)):
 				f = deepcopy(f_star);
 				p = p2;
-		#if(r%2000 == 0):
-		#	print decrypt(encText, f);
-		#	print '\n';
-		#	print f;
-		#	print p2,p1,math.exp(p2-p1),rnd, r;
 		r+=1;			
-		#print p2,p1,math.exp(p2-p1),rnd, r;
 		p = p1;
 		p_list.append(p);
 		f_list.append(f);
 		if (r==2500):
 			break;
 
-		#print p;	
-
-	
-
-	#print decrypt(encText, f);
 	return (p, decrypt(encText, f), p_list);
 
-
+# This function calculates the plausibility of a given function (how much is the 
+# predicted mapping closer to the original mapping )
 def calculateP(decrypt_f, f, M):
 	p = 0.0;
 	for i in range (0, len(decrypt_f)-1):
@@ -119,9 +134,10 @@ def calculateP(decrypt_f, f, M):
 		if (decrypt_f[i+1] != ' '):
 			ind2 = ord(decrypt_f[i+1]) - 96; 
 		p+= (M[ind1, ind2]);
-	#print p;
+	
 	return p;
 
+# This function decrypts the encoded text according to our predicted mapping
 def decrypt(encText, f):
 	decTxt = '';
 	for i in range(0,len(encText)):
@@ -135,6 +151,7 @@ def decrypt(encText, f):
 
 	return decTxt;
 
+# This function performs random transposition of two values of our prediction function
 def transpose(f):
 
 	n1 = 1;
@@ -155,7 +172,7 @@ def transpose(f):
 	#print f_star; 
 	return f_star;
 
-
+# This is the function to encoded any given text of English language
 def generateCiphers(normaltxt):
 
 	formattedText='';
@@ -167,7 +184,6 @@ def generateCiphers(normaltxt):
 			formattedText+=ch;
 
 	formattedText = formattedText.lower();
-	#print formattedText;
 
 	f = numpy.zeros(28, dtype = int);
 	for i in range(1,27):
@@ -180,27 +196,42 @@ def generateCiphers(normaltxt):
 		else:
 			ind = ord(formattedText[i]) - 96
 			encryptedText+= chr(f[ind] + 96);	
-	#print encryptedText;
 	return encryptedText;
 
 
 
 def main():
+
+	# Uncomment the line below which calls the generateTransitionMatrix function, if you are using this code
+	# for the first time and haven't generated a matrix yet.
+	# Subsequently, comment it. Otherwise the matrix will be generated everytime.
+
 	#generateTransitionMatrix('Austen.txt');	
+
+	print '\n!!!!Transition matrix generated, proceeding with the Metropolis algorithm!!!!';
 
 	M = numpy.zeros((27,27), dtype = numpy.float);
 	M = numpy.loadtxt('transitionMatrix_log_of_prob.txt');
-	#print M;
-	#decipherText(M,'liw pskmwcl ynlwrdwsy wdkkj kh kguxws lauel dq civsgwe fucjwre lzom pgw twzk uwhxvvxvh lzom pgw lxzsp momwvp x mak ajmosp sak ol mk aebnaxvpavew rxpg kon konz mavvwzs xmizwssxvh mw rxpg pgw lnjjwsp uwjxwl ol konz azzohavew konz eovewxp avy konz swjlxsg yxsyaxv ol pgw lwwjxvhs ol opgwzs rwzw sneg as po lozm pgw hzonvyrozd ol yxsaiizouapxov ov rgxeg sneewwyxvh wtwvps gatw unxjp so xmmotaujw a yxsjxdw avy x gay vop dvorv kon a movpg uwlozw x lwjp pgap kon rwzw pgw jasp mav xv pgw rozjy rgom x eonjy wtwz uw izwtaxjwy ov po mazzk');
-	encryptedText_default = 'lzom pgw twzk uwhxvvxvh lzom pgw lxzsp momwvp x mak ajmosp sak ol mk aebnaxvpavew rxpg kon konz mavvwzs xmizwssxvh mw rxpg pgw lnjjwsp uwjxwl ol konz azzohavew konz eovewxp avy konz swjlxsg yxsyaxv ol pgw lwwjxvhs ol opgwzs rwzw sneg as po lozm pgw hzonvyrozd ol yxsaiizouapxov ov rgxeg sneewwyxvh wtwvps gatw unxjp so xmmotaujw a yxsjxdw avy x gay vop dvorv kon a movpg uwlozw x lwjp pgap kon rwzw pgw jasp mav xv pgw rozjy rgom x eonjy wtwz uw izwtaxjwy ov po mazzk';
-	normaltxt = 'one should first of all hear about the Lord. When one has perfectly and scrutinizingly heard, one must glorify His acts and deeds, and thus it will become possible to remember constantly the transcendental nature of the Lord. Hearing about and glorifying the Lord are identical with the transcendental nature of the Lord, and by so doing, one will be always in the association of the Lord Science';
+	# place the text which you want to encode in normaltxt.
+	normaltxt = 'one should first of all hear about the Lord. When one has perfectly and scrutinizingly heard, one must glorify His acts and deeds, and thus it will become possible to remember constantly the transcendental nature of the Lord. Hearing about and glorifying the Lord are identical with the transcendental nature of the Lord, and by so doing, one will be always in the association of the Lord.';
+	# The generateCiphers function will generate a subsitution cipher for the normaltxt by replacing each letter
+	# with the letter after it in the English Alphabet. And letter 'z' will be replaced by 'a'. Spaces will remain at the same place.
 	encryptedText = generateCiphers(normaltxt);
 	best_p = -999999;
 	best_p_list = [];
 	best_decryption = '';
-	for i in range(0,12):
+	print '\n The normal text is : \n';
+	print normaltxt;
+	print '\n The encoded version of above text is : \n';
+	print encryptedText;
+	# Alternatively, if you already have a substitution cipher, you can pass it directly to the decipherText function below.
+	
+	# We run several rounds of the algorithm, to get the best results. 
+
+	print '\n....This may take almost a minute....\n'
+	for i in range(0,15):
 		(p, decryptedTxt, p_list) = decipherText(M, encryptedText);
-		print p, decryptedTxt;
+		#print p, decryptedTxt;
 		if(p>best_p):
 			best_p = p;
 			best_p_list = p_list;
@@ -209,8 +240,9 @@ def main():
 
 	print '\n And the decrypted Text is : \n';
 	print best_decryption;
-	print len(encryptedText_default)
-	print len(normaltxt)
+	print '\n---If you did not get the correct result, just run it once more and you will get it---\n'
+	print '\n---Kindly close the graph window to terminate the process---\n'
+	# Plotting the values of plausibility parameter versus the number of steps (2500).
 	plt.plot(list(range(1,2500)),best_p_list);
 	plt.ylabel('P');
 	plt.xlabel('steps');
