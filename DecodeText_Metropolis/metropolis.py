@@ -18,7 +18,7 @@ import matplotlib.pyplot as plt
 from copy import deepcopy
 import math
 
-# This code generates the transition matrix according to the Project Gutenberg's The Complete Works of Jane Austen.
+# This function generates the transition matrix according to the Project Gutenberg's The Complete Works of Jane Austen.
 # The text is taken from www.gutenberg.org.
 # The text is processed by converting all alphabets to lower case and replacing all non-alpha characters 
 # other than space, with a space.
