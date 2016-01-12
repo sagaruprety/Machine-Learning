@@ -202,11 +202,11 @@ def generateCiphers(normaltxt):
 
 def main():
 
-	# Uncomment the line below which calls the generateTransitionMatrix function, if you are using this code
-	# for the first time and haven't generated a matrix yet.
-	# Subsequently, comment it. Otherwise the matrix will be generated everytime.
+	# Comment the line below which calls the generateTransitionMatrix function, if you
+	# have already generated matrix.
+	# Otherwise the matrix will be generated everytime.
 
-	#generateTransitionMatrix('Austen.txt');	
+	generateTransitionMatrix('Austen.txt');	
 
 	print '\n!!!!Transition matrix generated, proceeding with the Metropolis algorithm!!!!';
 
