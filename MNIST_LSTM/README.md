@@ -1,0 +1,1 @@
+This code performs digit recognition on the MNSIT dataset using Long Short Term Memory Networks. Training accuracy is 99.9% and test accuracy on the Kaggle test set is 96%.
