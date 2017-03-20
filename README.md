@@ -1,4 +1,1 @@
-## ner-rnn
-
-Named entity extraction using sequence to sequence rnn-lstm models
-
+Contains all my machine learning related work.
